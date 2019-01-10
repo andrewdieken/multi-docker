@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dieke102/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run dieke102/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t dieke102/multi-client ./client
+  - docker build -t dieke102/multi-nginx ./nginx
+  - docker build -t dieke102/multi-server ./server
+  - docker build -t dieke102/multi-worker ./worker
+#login to docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "DOCKER_ID" --password-stdin
+#take images above and push to dockerhub
+  - docker push dieke102/multi-client
+  - docker push dieke102/multi-nginx
+  - docker push dieke102/multi-server
+  - docker push dieke102/multi-worker
